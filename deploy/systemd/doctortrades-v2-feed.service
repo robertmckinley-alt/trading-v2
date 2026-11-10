@@ -1,0 +1,19 @@
+[Unit]
+Description=DoctorTrades v2 Databento live OHLCV feed
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/doctortrades/trading-v2
+EnvironmentFile=/etc/doctortrades/trading-v2.env
+ExecStart=/usr/bin/python3 scripts/databento-live-feed.py --output runtime/databento-live.json
+Restart=always
+RestartSec=15
+TimeoutStopSec=30
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

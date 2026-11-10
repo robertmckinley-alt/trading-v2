@@ -1,0 +1,17 @@
+[Unit]
+Description=DoctorTrades v2 live status bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/doctortrades/trading-v2
+EnvironmentFile=/etc/doctortrades/trading-v2.env
+ExecStart=/usr/bin/node scripts/live-status-server.cjs
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

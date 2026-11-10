@@ -1,0 +1,42 @@
+name: NFL EDGE hourly monitor
+on:
+  schedule:
+    - cron: '13 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check provider lines and data freshness
+        env:
+          MONITOR_URL: ${{ vars.NFL_MONITOR_URL }}
+          MONITOR_SECRET: ${{ secrets.NFL_MONITOR_SECRET }}
+          TELEGRAM_TOKEN: ${{ secrets.NFL_TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT: ${{ secrets.NFL_TELEGRAM_CHAT_ID }}
+        run: |
+          python3 - <<'PY'
+          import json,os,urllib.request,urllib.error
+          url=os.getenv('MONITOR_URL') or 'https://trading-eight-self.vercel.app/api/nfl/monitor'
+          secret=os.getenv('MONITOR_SECRET')
+          if not secret: raise SystemExit('NFL_MONITOR_SECRET not configured')
+          req=urllib.request.Request(url,headers={'Authorization':'Bearer '+secret})
+          try:
+            with urllib.request.urlopen(req,timeout=55) as response: data=json.load(response)
+          except urllib.error.HTTPError as exc:
+            print('Monitor HTTP error:',exc.code,exc.read().decode()[:400]);raise SystemExit(1)
+          print(json.dumps({k:v for k,v in data.items() if k!='lines'},indent=2))
+          credits=data.get('remainingCredits')
+          if credits is not None:
+            try:
+              if float(credits)<10000: print('WARNING: ParlayAPI credits below 10,000')
+            except (TypeError,ValueError): pass
+          warnings=data.get('warnings',[])
+          if warnings and os.getenv('TELEGRAM_TOKEN') and os.getenv('TELEGRAM_CHAT'):
+            message='NFL EDGE monitoring alert: '+'; '.join(warnings[:5])
+            payload=json.dumps({'chat_id':os.environ['TELEGRAM_CHAT'],'text':message}).encode()
+            urllib.request.urlopen(urllib.request.Request('https://api.telegram.org/bot'+os.environ['TELEGRAM_TOKEN']+'/sendMessage',data=payload,headers={'Content-Type':'application/json'}),timeout=20).read()
+          if not data.get('ok'):raise SystemExit(1)
+          PY

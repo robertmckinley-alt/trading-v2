@@ -1,0 +1,21 @@
+.next/
+node_modules/
+.vercel/
+runtime/
+*.log
+__pycache__/
+
+# Private environment and credential files
+.env
+.env.*
+*.example
+deploy/systemd/trading*.env
+
+# Local paper-trader state
+state.json
+state-*.json
+state*.json.*.tmp
+
+.vercel
+.env.local
+.env.*.local

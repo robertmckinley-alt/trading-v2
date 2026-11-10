@@ -1,0 +1,20 @@
+[Unit]
+Description=DoctorTrades v2 paper watcher (%i) in OpenClaw container
+Requires=docker.service doctortrades-v2-container-feed.service
+After=docker.service network-online.target doctortrades-v2-container-feed.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/docker start openclaw-anwx-openclaw-1
+ExecStartPre=/usr/bin/docker exec -w /data/.openclaw/workspace/trading-v2 openclaw-anwx-openclaw-1 node scripts/watcher-control.cjs stop --strategy=%i
+ExecStart=/usr/bin/docker exec -w /data/.openclaw/workspace/trading-v2 openclaw-anwx-openclaw-1 /bin/bash -lc "set -a; . ./.env.local; set +a; if [ '%i' = 'live-9am-sweep' ]; then log_file=runtime/lucid-nq-paper-trader-watch.log; else log_file=runtime/%i-watch.log; fi; exec node paper-trader.cjs watch-live --provider=databento-live --interval=60000 --strategy=%i >> \"$log_file\" 2>&1"
+ExecStartPost=/usr/bin/docker exec -w /data/.openclaw/workspace/trading-v2 openclaw-anwx-openclaw-1 /bin/bash -lc "if [ '%i' = 'live-9am-sweep' ]; then pid_file=runtime/lucid-nq-paper-trader-watch.pid; else pid_file=runtime/%i-watch.pid; fi; pid=''; for attempt in 1 2 3 4 5; do pid=$(node scripts/watcher-control.cjs pid --strategy=%i 2>/dev/null || true); if [ -n \"$pid\" ]; then break; fi; sleep 1; done; test -n \"$pid\"; printf '%%s\\n' \"$pid\" > \"$pid_file\""
+ExecStop=/usr/bin/docker exec -w /data/.openclaw/workspace/trading-v2 openclaw-anwx-openclaw-1 node scripts/watcher-control.cjs stop --strategy=%i
+ExecStopPost=/usr/bin/docker exec -w /data/.openclaw/workspace/trading-v2 openclaw-anwx-openclaw-1 /bin/bash -lc "if [ '%i' = 'live-9am-sweep' ]; then pid_file=runtime/lucid-nq-paper-trader-watch.pid; else pid_file=runtime/%i-watch.pid; fi; rm -f \"$pid_file\""
+Restart=always
+RestartSec=10
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,20 @@
+[Unit]
+Description=DoctorTrades v2 paper watcher (%i)
+After=network-online.target doctortrades-v2-feed.service
+Wants=network-online.target
+Requires=doctortrades-v2-feed.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/doctortrades/trading-v2
+EnvironmentFile=/etc/doctortrades/trading-v2.env
+ExecStart=/usr/bin/node paper-trader.cjs watch-live --provider=databento-live --interval=60000 --strategy=%i
+Restart=always
+RestartSec=10
+TimeoutStopSec=30
+KillSignal=SIGTERM
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

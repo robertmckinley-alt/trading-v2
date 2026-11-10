@@ -1,0 +1,33 @@
+{
+  "name": "doctortrades-trading-v2",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "eslint .",
+    "test": "node --test",
+    "start": "next start",
+    "trader:plan": "node paper-trader.cjs live-plan",
+    "trader:watch": "node paper-trader.cjs watch-live",
+    "trader:watch:mock": "node paper-trader.cjs watch-live --provider=mock",
+    "trader:feed": "python3 scripts/databento-live-feed.py",
+    "trader:watch:start": "bash scripts/start-live-watcher.sh",
+    "trader:watch:stop": "bash scripts/stop-live-watcher.sh",
+    "trader:watch:status": "bash scripts/status-live-watcher.sh",
+    "trader:status:server": "node scripts/live-status-server.cjs"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.1.0",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
+    "dotenv": "^17.4.2",
+    "next": "^16.3.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.2",
+    "eslint-config-next": "^16.3.3"
+  }
+}

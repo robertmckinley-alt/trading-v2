@@ -1,0 +1,27 @@
+{
+  "symbol": "NQ",
+  "date": "2026-08-24",
+  "session": "9AM New York",
+  "side": "short",
+  "entry": 23215.25,
+  "stop": 23224.75,
+  "targets": [23202.75, 23195.25, 23184.75],
+  "thesis": "At 9AM New York, mark the Asia and London highs/lows, wait for the session high sweep, then short the 1-minute fair value gap reversal back to the other side while targeting the next draw on liquidity.",
+  "setup": {
+    "liquiditySweep": true,
+    "reaction": "bearish",
+    "marketStructureShift": false,
+    "cisd": false,
+    "displacement": false,
+    "entryModel": "session-sweep-fvg-reversal",
+    "gapType": "fvg",
+    "entryTimeframe": "M1",
+    "activationTime": "09:00 America/New_York",
+    "referenceSessions": ["asia", "london"],
+    "stopPlacement": "swing-high",
+    "higherTimeframeBias": "neutral-to-bearish",
+    "liquidityPool": "london-or-asia-high",
+    "liquidityLabel": "Asia / London session high",
+    "drawOnLiquidity": ["vwap", "intraday-sell-side", "current-week-low"]
+  }
+}

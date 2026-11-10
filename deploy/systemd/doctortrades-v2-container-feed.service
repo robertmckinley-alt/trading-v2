@@ -1,0 +1,18 @@
+[Unit]
+Description=DoctorTrades v2 Databento live feed in OpenClaw container
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStartPre=/usr/bin/docker start openclaw-anwx-openclaw-1
+ExecStartPre=/usr/bin/docker exec -w /data/.openclaw/workspace/trading-v2 openclaw-anwx-openclaw-1 node scripts/feed-control.cjs stop
+ExecStart=/usr/bin/docker exec -w /data/.openclaw/workspace/trading-v2 openclaw-anwx-openclaw-1 /bin/bash -lc "set -a; . ./.env.local; set +a; exec /usr/bin/python3 scripts/databento-live-feed.py --output runtime/databento-live.json"
+ExecStop=/usr/bin/docker exec -w /data/.openclaw/workspace/trading-v2 openclaw-anwx-openclaw-1 node scripts/feed-control.cjs stop
+Restart=always
+RestartSec=15
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target

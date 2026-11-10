@@ -1,0 +1,64 @@
+{
+  "symbol": "NQ",
+  "startingBalanceUsd": 50000,
+  "maxAccountDrawdownPercent": 10,
+  "maxRiskPerTradeUsd": 500,
+  "maxPortfolioOpenRiskUsd": 2500,
+  "maxStrategyFamilyOpenRiskUsd": {
+    "liquidity-reversal": 750,
+    "trend-momentum": 1000,
+    "vwap-reversion": 500
+  },
+  "maxDailyLossUsd": 750,
+  "tickSize": 0.25,
+  "tickValueUsd": 5,
+  "commissionPerContractUsd": 4.5,
+  "slippageTicks": 1,
+  "minimumRMultiple": 0,
+  "sameCandleConflict": "stop-first",
+  "liveActivationTime": "09:00 America/New_York",
+  "live": {
+    "provider": "databento-live",
+    "ticker": "NQ.v.0",
+    "mockCsvPath": "./examples/live-signal-nq-1m.csv",
+    "apiKeyEnv": "DATABENTO_API_KEY",
+    "dataset": "GLBX.MDP3",
+    "schema": "ohlcv-1m",
+    "stypeIn": "continuous",
+    "pythonBin": "python3",
+    "liveCachePath": "./runtime/databento-live.json",
+    "maxLiveCandleAgeMinutes": 3,
+    "baseUrl": "https://api.polygon.io",
+    "lookbackBars": 2880,
+    "pollIntervalMs": 60000,
+    "riskRewardFallback": 1.5,
+    "entryBufferTicks": 0,
+    "stopBufferTicks": 1,
+    "maxSignalAgeBars": 15,
+    "maxTradesPerDay": 1,
+    "sessionWindows": {
+      "asia": {
+        "start": "20:00",
+        "end": "01:59"
+      },
+      "london": {
+        "start": "02:00",
+        "end": "07:59"
+      }
+    }
+  },
+  "defaultScaleOuts": [
+    {
+      "targetIndex": 0,
+      "closeFraction": 0.5
+    },
+    {
+      "targetIndex": 1,
+      "closeFraction": 0.3
+    },
+    {
+      "targetIndex": 2,
+      "closeFraction": 0.2
+    }
+  ]
+}
