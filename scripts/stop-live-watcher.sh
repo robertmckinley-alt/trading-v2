@@ -17,17 +17,12 @@ if [[ -f "$ENV_FILE" ]]; then
 fi
 
 find_existing_watcher_pid() {
+  # Only a watcher whose working directory is THIS checkout is ever matched.
+  # Name-only matching (pgrep -f) would also match a sibling checkout's watcher.
   local pid_file="$1"
-  local pattern="$2"
-  if [[ -f "$pid_file" ]]; then
-    local pid
-    pid="$(cat "$pid_file" 2>/dev/null || true)"
-    if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
-      echo "$pid"
-      return 0
-    fi
-  fi
-  pgrep -f "$pattern" | head -n 1 || true
+  local strategy="$2"
+  node scripts/watcher-control.cjs status --strategy="$strategy" 2>/dev/null \
+    | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const p=JSON.parse(d).pids||[];if(p.length)console.log(p[0]);}catch{}})' || true
 }
 
 stop_watcher() {
@@ -35,11 +30,7 @@ stop_watcher() {
   local strategy="$2"
   local pid_file="$3"
   local watcher_pid
-  local pattern="node paper-trader.cjs watch-live.*--strategy=$strategy"
-  if [[ "$strategy" == "live-9am-sweep" ]]; then
-    pattern="node paper-trader.cjs watch-live"
-  fi
-  watcher_pid="$(find_existing_watcher_pid "$pid_file" "$pattern")"
+  watcher_pid="$(find_existing_watcher_pid "$pid_file" "$strategy")"
   if [[ -n "$watcher_pid" ]] && kill -0 "$watcher_pid" 2>/dev/null; then
     kill "$watcher_pid"
     echo "Stopped $label watcher PID $watcher_pid"

@@ -16,17 +16,12 @@ SHARED_FEED="${SHARED_FEED:-0}"
 ENV_FILE="${ENV_FILE:-$ROOT_DIR/.env.local}"
 
 find_existing_watcher_pid() {
+  # Only a watcher whose working directory is THIS checkout is ever matched.
+  # Name-only matching (pgrep -f) would also match a sibling checkout's watcher.
   local pid_file="$1"
-  local pattern="$2"
-  if [[ -f "$pid_file" ]]; then
-    local pid
-    pid="$(cat "$pid_file" 2>/dev/null || true)"
-    if [[ -n "$pid" ]] && { kill -0 "$pid" 2>/dev/null || ps -p "$pid" >/dev/null 2>&1; }; then
-      echo "$pid"
-      return 0
-    fi
-  fi
-  pgrep -f "$pattern" | head -n 1 || true
+  local strategy="$2"
+  node scripts/watcher-control.cjs status --strategy="$strategy" 2>/dev/null \
+    | node -e 'let d="";process.stdin.on("data",c=>d+=c).on("end",()=>{try{const p=JSON.parse(d).pids||[];if(p.length)console.log(p[0]);}catch{}})' || true
 }
 
 cd "$ROOT_DIR"
@@ -67,13 +62,8 @@ if [[ "$provider" == "databento-live" && -z "${DATABENTO_API_KEY:-}" ]]; then
 fi
 
 start_live_feed() {
-  local existing_pid
-  existing_pid="$(find_existing_watcher_pid "$FEED_PID_FILE" "python3 scripts/databento-live-feed.py")"
-  if [[ -n "$existing_pid" ]]; then
-    echo "Stopping existing Databento live feed PID $existing_pid"
-    kill "$existing_pid"
-    sleep 1
-  fi
+  # Stops only a feed owned by this checkout (exact cwd/script/output match).
+  node scripts/feed-control.cjs stop >/dev/null 2>&1 || true
   rm -f "$FEED_PID_FILE"
   touch "$FEED_LOG_FILE"
   nohup python3 scripts/databento-live-feed.py --output "$LIVE_CACHE_PATH" >>"$FEED_LOG_FILE" 2>&1 &
@@ -114,12 +104,8 @@ start_watcher() {
   local log_file="$4"
   local state_path="$5"
   local interval_ms="$6"
-  local pattern="node paper-trader.cjs watch-live.*--strategy=$strategy"
-  if [[ "$strategy" == "live-9am-sweep" ]]; then
-    pattern="node paper-trader.cjs watch-live"
-  fi
   local existing_pid
-  existing_pid="$(find_existing_watcher_pid "$pid_file" "$pattern")"
+  existing_pid="$(find_existing_watcher_pid "$pid_file" "$strategy")"
   if [[ -n "$existing_pid" ]]; then
     echo "Stopping existing $label watcher PID $existing_pid"
     kill "$existing_pid"
