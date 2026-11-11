@@ -17,7 +17,7 @@ ENV_FILE="${ENV_FILE:-$ROOT_DIR/.env.local}"
 
 find_existing_watcher_pid() {
   # Only a watcher whose working directory is THIS checkout is ever matched.
-  # Name-only matching (pgrep -f) would also match a sibling checkout's watcher.
+  # Matching by process name alone would also match a sibling checkout's watcher.
   local pid_file="$1"
   local strategy="$2"
   node scripts/watcher-control.cjs status --strategy="$strategy" 2>/dev/null \
